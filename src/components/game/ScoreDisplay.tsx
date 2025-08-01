@@ -1,9 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star } from '@phosphor-icons/react'
 import { ScoreResult } from '@/stores/gameStore'
+import { Confetti } from './Confetti'
 
 interface StarRatingProps {
   rating: number
@@ -32,13 +33,14 @@ function StarRating({
     stars.push(
       <motion.div
         key={i}
-        initial={animated ? { scale: 0, rotate: -180 } : undefined}
-        animate={animated ? { scale: 1, rotate: 0 } : undefined}
+        initial={animated ? { scale: 0, rotate: -360, opacity: 0 } : undefined}
+        animate={animated ? { scale: 1, rotate: 0, opacity: 1 } : undefined}
         transition={animated ? { 
-          delay: i * 0.1, 
-          duration: 0.5, 
+          delay: i * 0.15, 
+          duration: 0.8, 
           type: "spring",
-          stiffness: 200
+          stiffness: 300,
+          damping: 20
         } : undefined}
         className="relative"
       >
@@ -98,19 +100,44 @@ export function ScoreDisplay({
   onNewGame,
   className = '' 
 }: ScoreDisplayProps) {
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [confettiTriggered, setConfettiTriggered] = useState(false)
+
+  // Trigger confetti for high scores (4.0 or higher)
+  useEffect(() => {
+    if (scores && scores.overall >= 4.0 && isVisible && !confettiTriggered) {
+      setTimeout(() => {
+        setShowConfetti(true)
+        setConfettiTriggered(true)
+      }, 2500) // Delay to sync with score reveal
+    }
+  }, [scores, isVisible, confettiTriggered])
+
   if (!scores || !isVisible) {
     return null
   }
   
   return (
     <AnimatePresence>
+      {/* Confetti for high scores */}
+      <Confetti 
+        trigger={showConfetti} 
+        onComplete={() => setShowConfetti(false)}
+      />
+      
       <motion.div
-        initial={{ opacity: 0, y: 50, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -50, scale: 0.9 }}
-        transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
-        className={`bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl 
-                   border border-gray-200 max-w-md mx-auto ${className}`}
+        initial={{ opacity: 0, y: 100, scale: 0.5, rotateX: 90 }}
+        animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+        exit={{ opacity: 0, y: -100, scale: 0.5, rotateX: -90 }}
+        transition={{ duration: 1, type: "spring", stiffness: 150, damping: 15 }}
+        className={`bg-gradient-to-br from-yellow-50 via-white to-purple-50 
+                   backdrop-blur-sm rounded-3xl p-8 shadow-2xl 
+                   border-4 border-gradient-to-r from-gameshow-gold via-gameshow-hot to-gameshow-purple
+                   max-w-md mx-auto ${className}`}
+        style={{
+          background: 'linear-gradient(135deg, #fef3c7 0%, #ffffff 50%, #f3e8ff 100%)',
+          borderImage: 'linear-gradient(45deg, #ffd700, #ff1493, #8a2be2) 1'
+        }}
       >
         {/* Overall Score */}
         <motion.div
@@ -119,8 +146,11 @@ export function ScoreDisplay({
           transition={{ delay: 0.3, duration: 0.5 }}
           className="text-center mb-8"
         >
-          <h2 className="text-2xl font-gameshow text-gray-800 mb-4">
-            Your Score
+          <h2 className="text-3xl font-gameshow font-bold bg-gradient-to-r from-gameshow-gold via-gameshow-hot to-gameshow-purple bg-clip-text text-transparent mb-4">
+            {scores.overall >= 4.5 ? '🎉 AMAZING SCORE! 🎉' : 
+             scores.overall >= 4.0 ? '⭐ EXCELLENT! ⭐' : 
+             scores.overall >= 3.0 ? '🏆 YOUR SCORE! 🏆' : 
+             '💫 YOUR SCORE! 💫'}
           </h2>
           
           <div className="mb-4">
@@ -133,65 +163,83 @@ export function ScoreDisplay({
           </div>
           
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="text-4xl font-bold text-gameshow-gold mb-2"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
+            className="text-6xl font-bold bg-gradient-to-r from-yellow-400 via-gameshow-gold to-yellow-600 bg-clip-text text-transparent mb-2 drop-shadow-lg"
+            style={{
+              textShadow: '0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.3)'
+            }}
           >
             {scores.overall.toFixed(1)} ⭐
           </motion.div>
         </motion.div>
         
         {/* Category Breakdown */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="space-y-4 mb-8"
-        >
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4">
+        <div className="space-y-4 mb-8">
+          <motion.div
+            initial={{ opacity: 0, x: -100, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ delay: 1.2, duration: 0.6, type: "spring" }}
+            className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 rounded-2xl p-4 border-2 border-purple-200 shadow-lg"
+          >
             <StarRating 
               rating={scores.funny} 
-              size={20}
-              label="Funny"
+              size={24}
+              label="😂 Funny"
               animated={true}
             />
-          </div>
+          </motion.div>
           
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-4">
+          <motion.div
+            initial={{ opacity: 0, x: 100, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ delay: 1.8, duration: 0.6, type: "spring" }}
+            className="bg-gradient-to-r from-blue-100 via-cyan-100 to-blue-100 rounded-2xl p-4 border-2 border-blue-200 shadow-lg"
+          >
             <StarRating 
               rating={scores.accurate} 
-              size={20}
-              label="Accurate"
+              size={24}
+              label="🎯 Accurate"
               animated={true}
             />
-          </div>
+          </motion.div>
           
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4">
+          <motion.div
+            initial={{ opacity: 0, x: -100, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ delay: 2.4, duration: 0.6, type: "spring" }}
+            className="bg-gradient-to-r from-green-100 via-emerald-100 to-green-100 rounded-2xl p-4 border-2 border-green-200 shadow-lg"
+          >
             <StarRating 
               rating={scores.popular} 
-              size={20}
-              label="Popular"
+              size={24}
+              label="👑 Popular"
               animated={true}
             />
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
         
         {/* New Game Button */}
         {onNewGame && (
           <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
+            initial={{ opacity: 0, scale: 0.5, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 3, duration: 0.8, type: "spring", stiffness: 200 }}
             onClick={onNewGame}
-            className="w-full py-4 px-6 bg-gradient-to-r from-gameshow-gold to-yellow-500
-                     text-white font-bold rounded-2xl text-lg
-                     hover:from-yellow-500 hover:to-gameshow-gold
+            className="w-full py-4 px-6 bg-gradient-to-r from-gameshow-gold via-yellow-400 to-gameshow-gold
+                     text-black font-bold rounded-2xl text-xl font-gameshow
+                     hover:from-yellow-300 hover:via-gameshow-gold hover:to-yellow-300
                      transform transition-all duration-300
                      hover:scale-105 active:scale-95
-                     shadow-lg hover:shadow-xl"
+                     shadow-xl hover:shadow-2xl border-4 border-yellow-300
+                     animate-pulse hover:animate-none"
+            style={{
+              textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+              boxShadow: '0 0 20px rgba(255, 215, 0, 0.5), 0 10px 30px rgba(0,0,0,0.3)'
+            }}
           >
-            Next Color! 🎨
+            ⚡ NEXT COLOR! 🎨
           </motion.button>
         )}
       </motion.div>

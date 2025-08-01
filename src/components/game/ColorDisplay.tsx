@@ -14,18 +14,19 @@ export function ColorDisplay({ hexColor, className = '' }: ColorDisplayProps) {
   return (
     <motion.div
       key={hexColor}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, scale: 1.1 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
       className={`relative flex items-center justify-center min-h-screen w-full ${className}`}
       style={{ backgroundColor: hexColor }}
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
         {/* Main hex display */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          initial={{ scale: 0.5, opacity: 0, y: 100 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8, type: "spring", stiffness: 150 }}
           className="text-center"
         >
           <h1 
