@@ -54,31 +54,6 @@ export function ColorDisplay({ hexColor, className = '' }: ColorDisplayProps) {
             What&apos;s that color?
           </p>
         </motion.div>
-        
-        {/* Decorative elements */}
-        <motion.div
-          initial={{ rotate: 0 }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-10 right-10 w-16 h-16 opacity-20"
-        >
-          <div 
-            className={`w-full h-full rounded-full border-4 
-                       ${textColor === 'light' ? 'border-white' : 'border-black'}`}
-          />
-        </motion.div>
-        
-        <motion.div
-          initial={{ rotate: 360 }}
-          animate={{ rotate: 0 }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-10 left-10 w-12 h-12 opacity-20"
-        >
-          <div 
-            className={`w-full h-full rotate-45 border-4 
-                       ${textColor === 'light' ? 'border-white' : 'border-black'}`}
-          />
-        </motion.div>
       </div>
     </motion.div>
   )

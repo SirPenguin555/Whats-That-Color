@@ -146,9 +146,6 @@ export function GameContainer() {
           {isSubmitting && loadingStatus && (
             <div className="mb-8">
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 text-center">
-                <div className="animate-pulse mb-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mx-auto mb-3 animate-bounce"></div>
-                </div>
                 <p className="font-gameshow text-lg text-gray-800">
                   {loadingStatus}
                 </p>
