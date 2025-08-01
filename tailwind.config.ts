@@ -31,7 +31,7 @@ const config: Config = {
         }
       },
       fontFamily: {
-        gameshow: ['Fredoka One', 'cursive'],
+        gameshow: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'bounce-in': 'bounceIn 0.6s ease-out',

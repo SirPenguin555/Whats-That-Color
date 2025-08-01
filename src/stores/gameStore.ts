@@ -28,7 +28,7 @@ interface GameState {
   // Actions
   setCurrentColor: (color: string) => void
   setPlayerDescription: (description: string) => void
-  setCurrentScores: (scores: ScoreResult) => void
+  setCurrentScores: (scores: ScoreResult | null) => void
   setIsSubmitting: (submitting: boolean) => void
   addToHistory: (entry: ColorEntry) => void
   resetGame: () => void
@@ -47,7 +47,7 @@ export const useGameStore = create<GameState>((set) => ({
   
   setPlayerDescription: (description: string) => set({ playerDescription: description }),
   
-  setCurrentScores: (scores: ScoreResult) => set({ currentScores: scores }),
+  setCurrentScores: (scores: ScoreResult | null) => set({ currentScores: scores }),
   
   setIsSubmitting: (submitting: boolean) => set({ isSubmitting: submitting }),
   
