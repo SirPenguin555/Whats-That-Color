@@ -25,6 +25,10 @@ interface GameState {
   // Game history
   gameHistory: ColorEntry[]
   
+  // Tutorial state
+  showTutorial: boolean
+  hasSeenTutorial: boolean
+  
   // Actions
   setCurrentColor: (color: string) => void
   setPlayerDescription: (description: string) => void
@@ -32,6 +36,8 @@ interface GameState {
   setIsSubmitting: (submitting: boolean) => void
   addToHistory: (entry: ColorEntry) => void
   resetGame: () => void
+  setShowTutorial: (show: boolean) => void
+  completeTutorial: () => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -41,6 +47,8 @@ export const useGameStore = create<GameState>((set) => ({
   currentScores: null,
   isSubmitting: false,
   gameHistory: [],
+  showTutorial: true,
+  hasSeenTutorial: false,
   
   // Actions
   setCurrentColor: (color: string) => set({ currentColor: color }),
@@ -61,5 +69,12 @@ export const useGameStore = create<GameState>((set) => ({
     playerDescription: '',
     currentScores: null,
     isSubmitting: false,
+  }),
+  
+  setShowTutorial: (show: boolean) => set({ showTutorial: show }),
+  
+  completeTutorial: () => set({ 
+    showTutorial: false, 
+    hasSeenTutorial: true 
   }),
 }))

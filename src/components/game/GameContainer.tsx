@@ -8,17 +8,21 @@ import { scoreDescriptionWithAI } from '@/lib/aiScoring'
 import { ColorDisplay } from './ColorDisplay'
 import { DescriptionInput } from './DescriptionInput'
 import { ScoreDisplay } from './ScoreDisplay'
+import { Tutorial } from './Tutorial'
 
 export function GameContainer() {
   const {
     currentColor,
     currentScores,
     isSubmitting,
+    showTutorial,
     setCurrentColor,
     setPlayerDescription,
     setCurrentScores,
     setIsSubmitting,
-    addToHistory
+    addToHistory,
+    completeTutorial,
+    setShowTutorial
   } = useGameStore()
   
   const [showScores, setShowScores] = useState(false)
@@ -164,40 +168,40 @@ export function GameContainer() {
         </div>
       </div>
       
-      {/* Refresh Color Button */}
-      <div className="absolute top-4 right-4 md:top-8 md:right-8">
-        <button
-          onClick={handleRefreshColor}
-          disabled={isSubmitting}
-          className="bg-white/90 backdrop-blur-sm hover:bg-white/95 
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     transition-all duration-200 ease-out
-                     rounded-2xl p-4 shadow-lg hover:shadow-xl
-                     transform hover:scale-105 active:scale-95
-                     font-gameshow text-gray-800 text-sm
-                     border-2 border-transparent hover:border-purple-200"
-          title="Get a new color"
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 animate-spin"></div>
-            <span>New Color</span>
-          </div>
-        </button>
+      {/* Top Controls */}
+      <div className="absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-8">
+        <div className="flex justify-between items-start">
+          {/* Tutorial Button */}
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="bg-white/90 backdrop-blur-sm hover:bg-white/95 
+                       transition-all duration-200 ease-out
+                       rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
+                       font-gameshow text-gray-800 text-sm"
+            title="Show tutorial"
+          >
+            Tutorial
+          </button>
+
+          {/* Refresh Color Button */}
+          <button
+            onClick={handleRefreshColor}
+            disabled={isSubmitting}
+            className="bg-white/90 backdrop-blur-sm hover:bg-white/95 
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       transition-all duration-200 ease-out
+                       rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
+                       font-gameshow text-gray-800 text-sm"
+            title="Get a new color"
+          >
+            New Color
+          </button>
+        </div>
       </div>
 
-      {/* Game Instructions (only show on first load) */}
-      {!currentScores && !isSubmitting && (
-        <div className="absolute top-4 left-4 right-20 md:top-8 md:left-8 md:right-32">
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto md:mx-0">
-            <h2 className="font-gameshow text-lg text-gray-800 mb-2">
-              🎨 How to Play
-            </h2>
-            <p className="text-sm text-gray-600">
-              Look at the color and describe it however you like! 
-              Be funny, accurate, or creative - you&apos;ll get scored on all three.
-            </p>
-          </div>
-        </div>
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <Tutorial onComplete={completeTutorial} />
       )}
     </div>
   )
