@@ -1,0 +1,122 @@
+import { ScoreResult } from '@/stores/gameStore'
+
+interface ScoreAPIResponse {
+  scores: ScoreResult
+  cached: boolean
+  processingTime: number
+  source: 'ai' | 'fallback'
+}
+
+interface ScoreRequest {
+  description: string
+  hexColor: string
+}
+
+// Simple cache for API responses
+class ScoringCache {
+  private cache = new Map<string, { data: ScoreAPIResponse; timestamp: number }>()
+  private readonly TTL = 24 * 60 * 60 * 1000 // 24 hours
+  private readonly MAX_SIZE = 100
+
+  private generateKey(description: string, hexColor: string): string {
+    // Simple hash function for cache key
+    const str = `${hexColor.toLowerCase()}_${description.toLowerCase().trim()}`
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32-bit integer
+    }
+    return `score_${Math.abs(hash)}`
+  }
+
+  get(description: string, hexColor: string): ScoreAPIResponse | null {
+    const key = this.generateKey(description, hexColor)
+    const cached = this.cache.get(key)
+    
+    if (!cached) return null
+    
+    // Check if expired
+    if (Date.now() - cached.timestamp > this.TTL) {
+      this.cache.delete(key)
+      return null
+    }
+    
+    return { ...cached.data, cached: true }
+  }
+
+  set(description: string, hexColor: string, data: ScoreAPIResponse): void {
+    const key = this.generateKey(description, hexColor)
+    
+    // Implement LRU eviction if at max size
+    if (this.cache.size >= this.MAX_SIZE) {
+      const firstKey = this.cache.keys().next().value
+      if (firstKey) {
+        this.cache.delete(firstKey)
+      }
+    }
+    
+    this.cache.set(key, {
+      data: { ...data, cached: false },
+      timestamp: Date.now()
+    })
+  }
+
+  clear(): void {
+    this.cache.clear()
+  }
+
+  getStats(): { size: number; maxSize: number } {
+    return {
+      size: this.cache.size,
+      maxSize: this.MAX_SIZE
+    }
+  }
+}
+
+// Global cache instance
+const scoringCache = new ScoringCache()
+
+export async function scoreDescriptionWithAI(
+  description: string, 
+  hexColor: string
+): Promise<ScoreAPIResponse> {
+  // Check cache first
+  const cached = scoringCache.get(description, hexColor)
+  if (cached) {
+    return cached
+  }
+
+  try {
+    const requestBody: ScoreRequest = {
+      description: description.trim(),
+      hexColor: hexColor.toLowerCase()
+    }
+
+    const response = await fetch('/api/score-description', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+    }
+
+    const result: ScoreAPIResponse = await response.json()
+    
+    // Cache the result
+    scoringCache.set(description, hexColor, result)
+    
+    return result
+  } catch (error) {
+    console.error('AI scoring API call failed:', error)
+    throw error
+  }
+}
+
+// Export cache for debugging/stats
+export const getCacheStats = () => scoringCache.getStats()
+export const clearCache = () => scoringCache.clear()

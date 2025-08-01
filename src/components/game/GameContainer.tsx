@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react'
 import { useGameStore } from '@/stores/gameStore'
 import { generateDifferentColor } from '@/utils/colorGenerator'
 import { scoreDescription } from '@/utils/scoringEngine'
+import { scoreDescriptionWithAI } from '@/lib/aiScoring'
 import { ColorDisplay } from './ColorDisplay'
 import { DescriptionInput } from './DescriptionInput'
 import { ScoreDisplay } from './ScoreDisplay'
@@ -21,19 +22,47 @@ export function GameContainer() {
   } = useGameStore()
   
   const [showScores, setShowScores] = useState(false)
+  const [loadingStatus, setLoadingStatus] = useState<string | null>(null)
   
   const handleDescriptionSubmit = useCallback(async (description: string) => {
     if (!description.trim() || isSubmitting) return
     
     setIsSubmitting(true)
     setPlayerDescription(description)
+    setLoadingStatus('Analyzing your description...')
     
     try {
-      // Simulate some processing time for better UX
-      await new Promise(resolve => setTimeout(resolve, 800))
+      // Try AI scoring first
+      const aiEnabled = process.env.NEXT_PUBLIC_AI_SCORING_ENABLED === 'true'
+      let scores
       
-      // Calculate scores
-      const scores = scoreDescription(description, currentColor)
+      if (aiEnabled) {
+        try {
+          setLoadingStatus('🤖 AI is evaluating your creativity...')
+          const apiResponse = await scoreDescriptionWithAI(description, currentColor)
+          scores = apiResponse.scores
+          
+          // Show feedback about scoring method
+          if (apiResponse.source === 'ai') {
+            setLoadingStatus('✨ Scored by AI!')
+          } else {
+            setLoadingStatus('💡 Using smart algorithm')
+          }
+          
+          // Brief delay to show the status
+          await new Promise(resolve => setTimeout(resolve, 500))
+        } catch (aiError) {
+          console.warn('AI scoring failed, using fallback:', aiError)
+          setLoadingStatus('💡 Using smart algorithm')
+          scores = scoreDescription(description, currentColor)
+          await new Promise(resolve => setTimeout(resolve, 300))
+        }
+      } else {
+        setLoadingStatus('💡 Evaluating with smart algorithm...')
+        await new Promise(resolve => setTimeout(resolve, 800))
+        scores = scoreDescription(description, currentColor)
+      }
+      
       setCurrentScores(scores)
       
       // Add to history
@@ -50,8 +79,24 @@ export function GameContainer() {
       
     } catch (error) {
       console.error('Error scoring description:', error)
+      setLoadingStatus('⚠️ Something went wrong, using backup scoring')
+      
+      // Fallback to basic scoring
+      const fallbackScores = scoreDescription(description, currentColor)
+      setCurrentScores(fallbackScores)
+      
+      addToHistory({
+        id: Date.now().toString(),
+        hexColor: currentColor,
+        description,
+        scores: fallbackScores,
+        timestamp: new Date()
+      })
+      
+      setShowScores(true)
     } finally {
       setIsSubmitting(false)
+      setLoadingStatus(null)
     }
   }, [currentColor, isSubmitting, setIsSubmitting, setPlayerDescription, setCurrentScores, addToHistory])
   
@@ -82,6 +127,20 @@ export function GameContainer() {
                 isVisible={showScores}
                 onNewGame={handleNewGame}
               />
+            </div>
+          )}
+          
+          {/* Loading Status */}
+          {isSubmitting && loadingStatus && (
+            <div className="mb-8">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 text-center">
+                <div className="animate-pulse mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mx-auto mb-3 animate-bounce"></div>
+                </div>
+                <p className="font-gameshow text-lg text-gray-800">
+                  {loadingStatus}
+                </p>
+              </div>
             </div>
           )}
           
