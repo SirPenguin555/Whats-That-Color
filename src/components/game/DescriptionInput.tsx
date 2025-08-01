@@ -87,13 +87,13 @@ export function DescriptionInput({
               onKeyPress={handleKeyPress}
               className={`w-full px-6 py-4 pr-16 text-lg rounded-2xl border-2 
                          bg-white/90 backdrop-blur-sm resize-none
+                         text-gray-900 placeholder:text-gray-500
                          transition-all duration-300 focus:outline-none
                          ${errors.description 
                            ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' 
                            : 'border-gray-300 focus:border-gameshow-gold focus:ring-2 focus:ring-gameshow-gold/20'
                          }
-                         ${disabled || isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}
-                         placeholder:text-gray-500`}
+                         ${disabled || isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
               rows={3}
               maxLength={200}
             />
