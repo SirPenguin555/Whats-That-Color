@@ -111,6 +111,14 @@ export function GameContainer() {
     setShowScores(false)
   }, [currentColor, setCurrentColor, setCurrentScores, setPlayerDescription])
   
+  const handleRefreshColor = useCallback(() => {
+    if (isSubmitting) return // Don't allow refresh during submission
+    
+    // Generate a new color without resetting scores/description
+    const newColor = generateDifferentColor(currentColor)
+    setCurrentColor(newColor)
+  }, [currentColor, setCurrentColor, isSubmitting])
+  
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Background Color Display */}
@@ -156,9 +164,30 @@ export function GameContainer() {
         </div>
       </div>
       
+      {/* Refresh Color Button */}
+      <div className="absolute top-4 right-4 md:top-8 md:right-8">
+        <button
+          onClick={handleRefreshColor}
+          disabled={isSubmitting}
+          className="bg-white/90 backdrop-blur-sm hover:bg-white/95 
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     transition-all duration-200 ease-out
+                     rounded-2xl p-4 shadow-lg hover:shadow-xl
+                     transform hover:scale-105 active:scale-95
+                     font-gameshow text-gray-800 text-sm
+                     border-2 border-transparent hover:border-purple-200"
+          title="Get a new color"
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 animate-spin"></div>
+            <span>New Color</span>
+          </div>
+        </button>
+      </div>
+
       {/* Game Instructions (only show on first load) */}
       {!currentScores && !isSubmitting && (
-        <div className="absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-8">
+        <div className="absolute top-4 left-4 right-20 md:top-8 md:left-8 md:right-32">
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto md:mx-0">
             <h2 className="font-gameshow text-lg text-gray-800 mb-2">
               🎨 How to Play
