@@ -6,15 +6,15 @@
 ## Core Technologies
 
 ### Application Framework
-- **Framework:** Next.js 14+ (App Router)
+- **Framework:** Next.js 15.4+ (App Router)
 - **Language:** TypeScript (Strict mode)
 - **Type Checking:** Strict mode enabled
 
-### Database
-- **Primary:** Firestore (for user history and analytics)
-- **Type:** NoSQL Document Database
-- **Real-time:** Yes
-- **Offline Support:** Yes
+### Data Storage
+- **Primary:** localStorage (via Zustand persist middleware)
+- **Type:** Browser-based local storage
+- **Persistence:** Automatic via Zustand
+- **Offline Support:** Full offline functionality
 
 ## Frontend Stack
 
@@ -33,7 +33,7 @@
 
 ### Form Handling
 - **Library:** React Hook Form
-- **Validation:** Zod schema validation
+- **Validation:** Zod 3.23+ schema validation
 - **Purpose:** Color description input validation
 
 ### CSS Framework
@@ -54,10 +54,11 @@
 ## AI & Scoring
 
 ### AI Service
-- **Provider:** OpenAI GPT-4
+- **Provider:** OpenAI GPT-4 (User-provided API key)
 - **Purpose:** Score color descriptions on humor, accuracy, popularity
 - **API:** OpenAI API v1
 - **Fallback:** Local scoring algorithm for offline/error states
+- **Configuration:** First-time modal for API key selection
 
 ### Scoring Algorithm
 - **Funny Score:** GPT-4 humor assessment (0-5)
@@ -82,33 +83,13 @@
 - **Purpose:** Gameshow sound effects, score reveals
 - **Assets:** Custom gameshow-style audio clips
 
-## Third-Party Services
+## Deployment & Infrastructure
 
-### Analytics
-- **Service:** Firebase Analytics
-- **Purpose:** Track gameplay patterns, popular color ranges
-- **Privacy:** Anonymous usage data only
-
-### Error Monitoring
-- **Service:** Firebase Crashlytics
-- **Purpose:** Track and fix gameplay issues
-
-## Firebase Services
-
-### Authentication
-- **Service:** Firebase Authentication (Optional)
-- **Purpose:** Save game history across devices
-- **Anonymous:** Default mode for immediate play
-
-### Database
-- **Service:** Firestore
-- **Collections:** user-games, color-history, analytics
-- **Security:** Firestore Security Rules
-
-### Hosting
-- **Platform:** Firebase App Hosting
+### Application Hosting
+- **Platform:** Vercel (recommended) or Netlify
 - **Integration:** GitHub deployments
 - **Previews:** Automatic PR previews
+- **Static Export:** Full static site generation support
 
 ## Development Tools
 
@@ -127,4 +108,5 @@
 ### Development Environment
 - **Local Development:** Next.js dev server
 - **Environment Variables:** .env.local files
-- **AI Development:** OpenAI API key in env vars
+- **AI Development:** User-provided OpenAI API keys via UI
+- **Data Storage:** localStorage for development and production
