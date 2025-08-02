@@ -43,25 +43,25 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+          <div className="px-4 py-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-gameshow font-bold bg-gradient-to-r from-gameshow-purple to-gameshow-hot bg-clip-text text-transparent">
+              <h2 className="text-xl sm:text-2xl font-gameshow font-bold bg-gradient-to-r from-gameshow-purple to-gameshow-hot bg-clip-text text-transparent">
                 📊 Your Stats
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X size={24} />
               </button>
@@ -69,7 +69,7 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="flex-1 overflow-y-auto px-4 py-4 sm:p-6">
             {!stats ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-gray-500">Loading statistics...</div>

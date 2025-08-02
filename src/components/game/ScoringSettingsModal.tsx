@@ -60,29 +60,29 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+          <div className="px-4 py-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Gear size={28} className="text-purple-600" />
-                <h2 className="text-2xl font-gameshow font-bold bg-gradient-to-r from-gameshow-purple to-gameshow-hot bg-clip-text text-transparent">
+                <h2 className="text-xl sm:text-2xl font-gameshow font-bold bg-gradient-to-r from-gameshow-purple to-gameshow-hot bg-clip-text text-transparent">
                   {isFirstTime ? 'Welcome! Choose Your Scoring Method' : 'Scoring Settings'}
                 </h2>
               </div>
               {!isFirstTime && (
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
                   <X size={24} />
                 </button>
@@ -91,7 +91,7 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto px-4 py-4 sm:p-6 space-y-4 sm:space-y-6">
             {isFirstTime && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <p className="text-blue-800 text-center font-medium">
@@ -106,7 +106,7 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                className={`border-2 rounded-xl p-4 sm:p-6 cursor-pointer transition-all ${
                   selectedMethod === 'local'
                     ? 'border-purple-400 bg-purple-50'
                     : 'border-gray-200 hover:border-gray-300'
@@ -127,7 +127,7 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
                         onChange={() => handleMethodChange('local')}
                         className="text-purple-600 focus:ring-purple-500"
                       />
-                      <h3 className="text-lg font-gameshow font-bold text-gray-900">
+                      <h3 className="text-base sm:text-lg font-gameshow font-bold text-gray-900">
                         Smart Algorithm (Free)
                       </h3>
                     </div>
@@ -149,7 +149,7 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                className={`border-2 rounded-xl p-4 sm:p-6 cursor-pointer transition-all ${
                   selectedMethod === 'openai'
                     ? 'border-green-400 bg-green-50'
                     : 'border-gray-200 hover:border-gray-300'
@@ -170,7 +170,7 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
                         onChange={() => handleMethodChange('openai')}
                         className="text-green-600 focus:ring-green-500"
                       />
-                      <h3 className="text-lg font-gameshow font-bold text-gray-900">
+                      <h3 className="text-base sm:text-lg font-gameshow font-bold text-gray-900">
                         AI-Powered Scoring (Your API Key)
                       </h3>
                     </div>
@@ -205,7 +205,7 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
                       placeholder="sk-..."
-                      className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
+                      className="w-full px-3 py-3 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm min-h-[44px]"
                     />
                     <p className="text-xs text-green-600 mt-1">
                       Your key is stored locally and never shared. Get yours at{' '}
@@ -223,12 +223,15 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
               </AnimatePresence>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+          </div>
+
+          {/* Action Buttons - Fixed Footer */}
+          <div className="flex-shrink-0 px-4 py-4 sm:p-6 border-t border-gray-200 bg-gray-50/50">
+            <div className="flex gap-2 sm:gap-3 justify-end">
               {!isFirstTime && (
                 <button
                   onClick={onClose}
-                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-3 sm:px-6 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base min-h-[44px]"
                 >
                   Cancel
                 </button>
@@ -236,7 +239,7 @@ export function ScoringSettingsModal({ isOpen, onClose, isFirstTime = false }: S
               <button
                 onClick={handleSave}
                 disabled={selectedMethod === 'openai' && !apiKey.trim()}
-                className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-3 sm:px-6 sm:py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base min-h-[44px]"
               >
                 {isFirstTime ? "Let's Play!" : 'Save Settings'}
               </button>
