@@ -131,7 +131,7 @@ export function ScoreDisplay({
         exit={{ opacity: 0, y: -100, scale: 0.5, rotateX: -90 }}
         transition={{ duration: 1, type: "spring", stiffness: 150, damping: 15 }}
         className={`bg-gradient-to-br from-yellow-50 via-white to-purple-50 
-                   backdrop-blur-sm rounded-3xl p-8 shadow-2xl 
+                   backdrop-blur-sm rounded-2xl p-8 shadow-2xl 
                    border-4 border-gradient-to-r from-gameshow-gold via-gameshow-hot to-gameshow-purple
                    max-w-md mx-auto ${className}`}
         style={{
@@ -147,10 +147,9 @@ export function ScoreDisplay({
           className="text-center mb-8"
         >
           <h2 className="text-3xl font-gameshow font-bold bg-gradient-to-r from-gameshow-gold via-gameshow-hot to-gameshow-purple bg-clip-text text-transparent mb-4">
-            {scores.overall >= 4.5 ? '🎉 AMAZING SCORE! 🎉' : 
-             scores.overall >= 4.0 ? '⭐ EXCELLENT! ⭐' : 
-             scores.overall >= 3.0 ? '🏆 YOUR SCORE! 🏆' : 
-             '💫 YOUR SCORE! 💫'}
+            {scores.overall >= 4.5 ? 'AMAZING SCORE!' : 
+             scores.overall >= 4.0 ? 'EXCELLENT!' : 
+             'YOUR SCORE!'}
           </h2>
           
           <div className="mb-4">
@@ -181,7 +180,7 @@ export function ScoreDisplay({
             initial={{ opacity: 0, x: -100, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ delay: 1.2, duration: 0.6, type: "spring" }}
-            className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 rounded-2xl p-4 border-2 border-purple-200 shadow-lg"
+            className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 rounded-2xl p-4 border-2 border-purple-200 shadow-lg flex justify-center"
           >
             <StarRating 
               rating={scores.funny} 
@@ -195,7 +194,7 @@ export function ScoreDisplay({
             initial={{ opacity: 0, x: 100, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ delay: 1.8, duration: 0.6, type: "spring" }}
-            className="bg-gradient-to-r from-blue-100 via-cyan-100 to-blue-100 rounded-2xl p-4 border-2 border-blue-200 shadow-lg"
+            className="bg-gradient-to-r from-blue-100 via-cyan-100 to-blue-100 rounded-2xl p-4 border-2 border-blue-200 shadow-lg flex justify-center"
           >
             <StarRating 
               rating={scores.accurate} 
@@ -209,7 +208,7 @@ export function ScoreDisplay({
             initial={{ opacity: 0, x: -100, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ delay: 2.4, duration: 0.6, type: "spring" }}
-            className="bg-gradient-to-r from-green-100 via-emerald-100 to-green-100 rounded-2xl p-4 border-2 border-green-200 shadow-lg"
+            className="bg-gradient-to-r from-green-100 via-emerald-100 to-green-100 rounded-2xl p-4 border-2 border-green-200 shadow-lg flex justify-center"
           >
             <StarRating 
               rating={scores.popular} 
@@ -239,7 +238,7 @@ export function ScoreDisplay({
               boxShadow: '0 0 20px rgba(255, 215, 0, 0.5), 0 10px 30px rgba(0,0,0,0.3)'
             }}
           >
-            ⚡ NEXT COLOR! 🎨
+            NEXT COLOR!
           </motion.button>
         )}
       </motion.div>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { useGameStore } from '@/stores/gameStore'
 import { generateDifferentColor } from '@/utils/colorGenerator'
 import { scoreDescription } from '@/utils/scoringEngine'
@@ -8,7 +8,9 @@ import { scoreDescriptionWithAI } from '@/lib/aiScoring'
 import { ColorDisplay } from './ColorDisplay'
 import { DescriptionInput } from './DescriptionInput'
 import { ScoreDisplay } from './ScoreDisplay'
+import { ScrollableFooter } from './ScrollableFooter'
 import { Tutorial } from './Tutorial'
+import { ScoringSettingsModal } from './ScoringSettingsModal'
 
 export function GameContainer() {
   const {
@@ -16,6 +18,7 @@ export function GameContainer() {
     currentScores,
     isSubmitting,
     showTutorial,
+    hasSeenTutorial,
     setCurrentColor,
     setPlayerDescription,
     setCurrentScores,
@@ -27,6 +30,40 @@ export function GameContainer() {
   
   const [showScores, setShowScores] = useState(false)
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showFirstTimeSettings, setShowFirstTimeSettings] = useState(false)
+  const hasCheckedTutorial = useRef(false)
+  const hasCheckedSettings = useRef(false)
+  
+  // Show tutorial on first visit only - run once after hydration
+  useEffect(() => {
+    if (hasCheckedTutorial.current) return
+    
+    // Small delay to ensure Zustand has hydrated from localStorage
+    const timer = setTimeout(() => {
+      if (!hasSeenTutorial && !showTutorial) {
+        setShowTutorial(true)
+      }
+      hasCheckedTutorial.current = true
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [hasSeenTutorial, showTutorial, setShowTutorial])
+
+  // Show settings on first visit if user hasn't seen them yet
+  useEffect(() => {
+    if (hasCheckedSettings.current) return
+    
+    const timer = setTimeout(() => {
+      const hasSeenSettings = localStorage.getItem('has_seen_scoring_settings')
+      if (!hasSeenSettings && !showFirstTimeSettings) {
+        setShowFirstTimeSettings(true)
+      }
+      hasCheckedSettings.current = true
+    }, 200) // Slight delay after tutorial check
+    
+    return () => clearTimeout(timer)
+  }, [showFirstTimeSettings])
   
   const handleDescriptionSubmit = useCallback(async (description: string) => {
     if (!description.trim() || isSubmitting) return
@@ -36,11 +73,14 @@ export function GameContainer() {
     setLoadingStatus('Analyzing your description...')
     
     try {
-      // Try AI scoring first
-      const aiEnabled = process.env.NEXT_PUBLIC_AI_SCORING_ENABLED === 'true'
+      // Check user's scoring preference
+      const scoringMethod = localStorage.getItem('scoring_method') || 'local'
+      const hasApiKey = !!localStorage.getItem('openai_api_key')
+      const shouldUseAI = scoringMethod === 'openai' && hasApiKey
+      
       let scores
       
-      if (aiEnabled) {
+      if (shouldUseAI) {
         try {
           setLoadingStatus('🤖 AI is evaluating your creativity...')
           const apiResponse = await scoreDescriptionWithAI(description, currentColor)
@@ -70,13 +110,15 @@ export function GameContainer() {
       setCurrentScores(scores)
       
       // Add to history
-      addToHistory({
+      const historyEntry = {
         id: Date.now().toString(),
         hexColor: currentColor,
         description,
         scores,
         timestamp: new Date()
-      })
+      }
+      
+      addToHistory(historyEntry)
       
       // Show scores
       setShowScores(true)
@@ -89,13 +131,15 @@ export function GameContainer() {
       const fallbackScores = scoreDescription(description, currentColor)
       setCurrentScores(fallbackScores)
       
-      addToHistory({
+      const fallbackEntry = {
         id: Date.now().toString(),
         hexColor: currentColor,
         description,
         scores: fallbackScores,
         timestamp: new Date()
-      })
+      }
+      
+      addToHistory(fallbackEntry)
       
       setShowScores(true)
     } finally {
@@ -124,63 +168,65 @@ export function GameContainer() {
   }, [currentColor, setCurrentColor, isSubmitting])
   
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Background Color Display */}
-      <ColorDisplay hexColor={currentColor} />
-      
-      {/* Game Interface Overlay */}
-      <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-8">
-        <div className="w-full max-w-4xl mx-auto">
-          {/* Score Display */}
-          {showScores && currentScores && (
-            <div className="mb-8">
-              <ScoreDisplay 
-                scores={currentScores}
-                isVisible={showScores}
-                onNewGame={handleNewGame}
-              />
-            </div>
-          )}
-          
-          {/* Loading Status */}
-          {isSubmitting && loadingStatus && (
-            <div className="mb-8">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 text-center">
-                <p className="font-gameshow text-lg text-gray-800">
-                  {loadingStatus}
-                </p>
+    <div className="relative">
+      {/* Main Game Screen */}
+      <div className="relative min-h-screen overflow-hidden">
+        {/* Background Color Display */}
+        <ColorDisplay hexColor={currentColor} />
+        
+        {/* Game Interface Overlay */}
+        <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-8">
+          <div className="w-full max-w-4xl mx-auto">
+            {/* Score Display */}
+            {showScores && currentScores && (
+              <div className="mb-8">
+                <ScoreDisplay 
+                  scores={currentScores}
+                  isVisible={showScores}
+                  onNewGame={handleNewGame}
+                />
               </div>
-            </div>
-          )}
-          
-          {/* Input Section */}
-          {!showScores && (
-            <DescriptionInput
-              onSubmit={handleDescriptionSubmit}
-              isSubmitting={isSubmitting}
-              disabled={showScores}
-              placeholder="Describe this color in your own creative way..."
-            />
-          )}
+            )}
+            
+            {/* Loading Status */}
+            {isSubmitting && loadingStatus && (
+              <div className="mb-8">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 text-center">
+                  <p className="font-gameshow text-lg text-gray-800">
+                    {loadingStatus}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Input Section */}
+            {!showScores && (
+              <DescriptionInput
+                onSubmit={handleDescriptionSubmit}
+                isSubmitting={isSubmitting}
+                disabled={showScores}
+                placeholder="Describe this color in your own creative way..."
+                currentColor={currentColor}
+              />
+            )}
+          </div>
         </div>
-      </div>
-      
-      {/* Top Controls */}
-      <div className="absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-8">
-        <div className="flex justify-between items-start">
-          {/* Tutorial Button */}
+        
+        {/* Top Controls */}
+        <div className="absolute top-4 left-4 md:top-8 md:left-8 z-50">
           <button
-            onClick={() => setShowTutorial(true)}
+            onClick={() => setShowSettings(true)}
             className="bg-white/90 backdrop-blur-sm hover:bg-white/95 
                        transition-all duration-200 ease-out
                        rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
                        font-gameshow text-gray-800 text-sm"
-            title="Show tutorial"
+            title="Scoring Settings"
           >
-            Tutorial
+            Settings
           </button>
-
-          {/* Refresh Color Button */}
+        </div>
+        
+        <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50">
           <button
             onClick={handleRefreshColor}
             disabled={isSubmitting}
@@ -196,10 +242,30 @@ export function GameContainer() {
         </div>
       </div>
 
-      {/* Tutorial Modal */}
+      {/* Scrollable Footer */}
+      <ScrollableFooter 
+        currentColor={currentColor}
+        onTutorialComplete={completeTutorial}
+      />
+
+      {/* Tutorial Modal - shows on first visit */}
       {showTutorial && (
         <Tutorial onComplete={completeTutorial} />
       )}
+
+      {/* Settings Modal */}
+      <ScoringSettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        isFirstTime={false}
+      />
+
+      {/* First-time Settings Modal */}
+      <ScoringSettingsModal
+        isOpen={showFirstTimeSettings}
+        onClose={() => setShowFirstTimeSettings(false)}
+        isFirstTime={true}
+      />
     </div>
   )
 }

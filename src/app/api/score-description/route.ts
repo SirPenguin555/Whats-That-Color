@@ -20,6 +20,7 @@ function getOpenAIClient(): OpenAI {
 interface ScoreRequest {
   description: string
   hexColor: string
+  apiKey?: string
 }
 
 interface AIScoreResponse {
@@ -68,8 +69,12 @@ function calculateOverallScore(funny: number, accurate: number, popular: number)
   return Math.round(weighted * 10) / 10 // Round to 1 decimal place
 }
 
-async function scoreWithAI(description: string, hexColor: string): Promise<AIScoreResponse> {
-  const openai = getOpenAIClient()
+async function scoreWithAI(description: string, hexColor: string, apiKey?: string): Promise<AIScoreResponse> {
+  // Use provided API key or fall back to environment key
+  const openai = apiKey 
+    ? new OpenAI({ apiKey }) 
+    : getOpenAIClient()
+    
   const prompt = SCORING_PROMPT
     .replace('{hexColor}', hexColor)
     .replace('{description}', description)
@@ -119,7 +124,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScoreResp
   try {
     // Parse request body
     const body = await request.json() as ScoreRequest
-    const { description, hexColor } = body
+    const { description, hexColor, apiKey } = body
 
     // Validate input
     if (!description || !hexColor) {
@@ -129,16 +134,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScoreResp
       )
     }
 
-    // Check if AI scoring is enabled and API key is available
-    const aiEnabled = process.env.NEXT_PUBLIC_AI_SCORING_ENABLED === 'true'
-    const hasApiKey = !!process.env.OPENAI_API_KEY
+    // Determine if we should use AI scoring
+    const shouldUseAI = apiKey || (process.env.NEXT_PUBLIC_AI_SCORING_ENABLED === 'true' && process.env.OPENAI_API_KEY)
 
     let scores: AIScoreResponse
     let source: 'ai' | 'fallback' = 'fallback'
 
-    if (aiEnabled && hasApiKey) {
+    if (shouldUseAI) {
       try {
-        scores = await scoreWithAI(description, hexColor)
+        scores = await scoreWithAI(description, hexColor, apiKey)
         source = 'ai'
       } catch (aiError) {
         console.warn('AI scoring failed, using fallback:', aiError)

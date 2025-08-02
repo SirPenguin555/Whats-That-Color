@@ -52,7 +52,7 @@ export function ColorDisplay({ hexColor, className = '' }: ColorDisplayProps) {
                 : '1px 1px 2px rgba(255,255,255,0.3)'
             }}
           >
-            What&apos;s that color?
+            What&apos;s That Color?
           </p>
         </motion.div>
       </div>

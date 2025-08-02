@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { PaperPlaneRight } from '@phosphor-icons/react'
+import { getContrastingTextColor } from '@/utils/colorUtils'
 
 const descriptionSchema = z.object({
   description: z.string()
@@ -25,6 +26,7 @@ interface DescriptionInputProps {
   disabled?: boolean
   placeholder?: string
   className?: string
+  currentColor?: string
 }
 
 export function DescriptionInput({ 
@@ -32,7 +34,8 @@ export function DescriptionInput({
   isSubmitting = false, 
   disabled = false,
   placeholder = "Describe this color...",
-  className = '' 
+  className = '',
+  currentColor = '#000000'
 }: DescriptionInputProps) {
   const [charCount, setCharCount] = useState(0)
   
@@ -68,6 +71,9 @@ export function DescriptionInput({
       }
     }
   }
+
+  // Get contrasting text color for readability
+  const textColor = getContrastingTextColor(currentColor)
   
   return (
     <motion.div
@@ -133,7 +139,8 @@ export function DescriptionInput({
             
             <span className={`text-sm font-medium
                            ${charCount > 180 ? 'text-red-500' : 
-                             charCount > 150 ? 'text-yellow-600' : 'text-gray-500'}`}>
+                             charCount > 150 ? 'text-yellow-600' : 
+                             textColor === 'white' ? 'text-white/80' : 'text-gray-600'}`}>
               {charCount}/200
             </span>
           </div>
@@ -144,9 +151,11 @@ export function DescriptionInput({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-center text-gray-600 text-sm"
+          className={`text-center text-sm font-medium ${
+            textColor === 'white' ? 'text-white/90' : 'text-gray-800'
+          }`}
         >
-          Be creative! Describe the color however you like - funny, accurate, or unique.
+          Get creative! How would you describe this color? Be funny, poetic, or wildly imaginative!
         </motion.p>
       </form>
     </motion.div>

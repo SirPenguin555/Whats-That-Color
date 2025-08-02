@@ -20,7 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "What's That Color? - Creative Color Game",
+  title: "Whats That Color",
   description: "A fun gameshow-style game where you describe colors and get scored on humor, accuracy, and creativity!",
 };
 

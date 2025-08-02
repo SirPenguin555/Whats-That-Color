@@ -10,6 +10,7 @@ interface ScoreAPIResponse {
 interface ScoreRequest {
   description: string
   hexColor: string
+  apiKey?: string
 }
 
 // Simple cache for API responses
@@ -87,10 +88,15 @@ export async function scoreDescriptionWithAI(
     return cached
   }
 
+  // Get user's API key from localStorage
+  const userApiKey = localStorage.getItem('openai_api_key')
+  const scoringMethod = localStorage.getItem('scoring_method')
+
   try {
     const requestBody: ScoreRequest = {
       description: description.trim(),
-      hexColor: hexColor.toLowerCase()
+      hexColor: hexColor.toLowerCase(),
+      ...(userApiKey && scoringMethod === 'openai' && { apiKey: userApiKey })
     }
 
     const response = await fetch('/api/score-description', {
