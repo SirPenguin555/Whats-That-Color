@@ -9,7 +9,8 @@ interface ScoreAPIResponse {
 
 interface ScoreRequest {
   description: string
-  hexColor: string
+  hexColor?: string
+  dualColors?: { colorA: string; colorB: string }
   apiKey?: string
 }
 
@@ -19,9 +20,12 @@ class ScoringCache {
   private readonly TTL = 24 * 60 * 60 * 1000 // 24 hours
   private readonly MAX_SIZE = 100
 
-  private generateKey(description: string, hexColor: string): string {
+  private generateKey(description: string, colorData: string | { colorA: string; colorB: string }): string {
     // Simple hash function for cache key
-    const str = `${hexColor.toLowerCase()}_${description.toLowerCase().trim()}`
+    const colorStr = typeof colorData === 'string'
+      ? colorData.toLowerCase()
+      : `${colorData.colorA.toLowerCase()}_${colorData.colorB.toLowerCase()}`
+    const str = `${colorStr}_${description.toLowerCase().trim()}`
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
@@ -31,23 +35,23 @@ class ScoringCache {
     return `score_${Math.abs(hash)}`
   }
 
-  get(description: string, hexColor: string): ScoreAPIResponse | null {
-    const key = this.generateKey(description, hexColor)
+  get(description: string, colorData: string | { colorA: string; colorB: string }): ScoreAPIResponse | null {
+    const key = this.generateKey(description, colorData)
     const cached = this.cache.get(key)
-    
+
     if (!cached) return null
-    
+
     // Check if expired
     if (Date.now() - cached.timestamp > this.TTL) {
       this.cache.delete(key)
       return null
     }
-    
+
     return { ...cached.data, cached: true }
   }
 
-  set(description: string, hexColor: string, data: ScoreAPIResponse): void {
-    const key = this.generateKey(description, hexColor)
+  set(description: string, colorData: string | { colorA: string; colorB: string }, data: ScoreAPIResponse): void {
+    const key = this.generateKey(description, colorData)
     
     // Implement LRU eviction if at max size
     if (this.cache.size >= this.MAX_SIZE) {
@@ -79,11 +83,11 @@ class ScoringCache {
 const scoringCache = new ScoringCache()
 
 export async function scoreDescriptionWithAI(
-  description: string, 
-  hexColor: string
+  description: string,
+  colorData: string | { colorA: string; colorB: string }
 ): Promise<ScoreAPIResponse> {
   // Check cache first
-  const cached = scoringCache.get(description, hexColor)
+  const cached = scoringCache.get(description, colorData)
   if (cached) {
     return cached
   }
@@ -95,7 +99,9 @@ export async function scoreDescriptionWithAI(
   try {
     const requestBody: ScoreRequest = {
       description: description.trim(),
-      hexColor: hexColor.toLowerCase(),
+      ...(typeof colorData === 'string'
+        ? { hexColor: colorData.toLowerCase() }
+        : { dualColors: { colorA: colorData.colorA.toLowerCase(), colorB: colorData.colorB.toLowerCase() } }),
       ...(userApiKey && scoringMethod === 'openai' && { apiKey: userApiKey })
     }
 
@@ -112,10 +118,10 @@ export async function scoreDescriptionWithAI(
     }
 
     const result: ScoreAPIResponse = await response.json()
-    
+
     // Cache the result
-    scoringCache.set(description, hexColor, result)
-    
+    scoringCache.set(description, colorData, result)
+
     return result
   } catch (error) {
     console.error('AI scoring API call failed:', error)

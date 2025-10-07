@@ -59,8 +59,46 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
 export function getContrastColor(hex: string): 'light' | 'dark' {
   const rgb = hexToRgb(hex)
   if (!rgb) return 'dark'
-  
+
   // Calculate luminance using the relative luminance formula
   const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255
   return luminance > 0.5 ? 'dark' : 'light'
+}
+
+/**
+ * Calculates Euclidean distance between two colors in RGB space
+ * @param hex1 First hex color
+ * @param hex2 Second hex color
+ * @returns Distance value (0-441)
+ */
+export function getColorDistance(hex1: string, hex2: string): number {
+  const rgb1 = hexToRgb(hex1)
+  const rgb2 = hexToRgb(hex2)
+
+  if (!rgb1 || !rgb2) return 0
+
+  const rDiff = rgb1.r - rgb2.r
+  const gDiff = rgb1.g - rgb2.g
+  const bDiff = rgb1.b - rgb2.b
+
+  return Math.sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff)
+}
+
+/**
+ * Generates two random colors with sufficient distance between them
+ * @param minDistance Minimum color distance (default: 100)
+ * @returns Object with colorA and colorB
+ */
+export function generateDualColors(minDistance: number = 100): { colorA: string; colorB: string } {
+  const colorA = generateRandomColor()
+  let colorB = generateRandomColor()
+  let attempts = 0
+
+  // Ensure colors are sufficiently different
+  while (getColorDistance(colorA, colorB) < minDistance && attempts < 20) {
+    colorB = generateRandomColor()
+    attempts++
+  }
+
+  return { colorA, colorB }
 }

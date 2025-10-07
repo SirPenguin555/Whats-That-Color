@@ -330,6 +330,8 @@ interface ColorHistoryItemProps {
 }
 
 function ColorHistoryItem({ entry }: ColorHistoryItemProps) {
+  const isDualMode = entry.gameMode === 'dual' && entry.dualColors
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -338,23 +340,36 @@ function ColorHistoryItem({ entry }: ColorHistoryItemProps) {
     >
       <div className="flex items-start gap-4">
         {/* Color Swatch */}
-        <div 
-          className="w-16 h-16 rounded-lg border-2 border-white shadow-md flex-shrink-0"
-          style={{ backgroundColor: entry.hexColor }}
-        />
-        
+        {isDualMode && entry.dualColors ? (
+          <div
+            className="w-16 h-16 rounded-lg border-2 border-white shadow-md flex-shrink-0"
+            style={{
+              background: `linear-gradient(to right, ${entry.dualColors.colorA} 0%, ${entry.dualColors.colorA} 50%, ${entry.dualColors.colorB} 50%, ${entry.dualColors.colorB} 100%)`
+            }}
+          />
+        ) : (
+          <div
+            className="w-16 h-16 rounded-lg border-2 border-white shadow-md flex-shrink-0"
+            style={{ backgroundColor: entry.hexColor }}
+          />
+        )}
+
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <h3 className="font-medium text-gray-900 mb-1">{entry.hexColor.toUpperCase()}</h3>
+              <h3 className="font-medium text-gray-900 mb-1">
+                {isDualMode && entry.dualColors
+                  ? `${entry.dualColors.colorA.toUpperCase()} ↔ ${entry.dualColors.colorB.toUpperCase()}`
+                  : entry.hexColor.toUpperCase()}
+              </h3>
               <p className="text-sm text-gray-600 italic">&ldquo;{entry.description}&rdquo;</p>
             </div>
             <div className="text-xs text-gray-500 ml-4">
               {entry.timestamp.toLocaleDateString()}
             </div>
           </div>
-          
+
           {/* Scores */}
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-1">

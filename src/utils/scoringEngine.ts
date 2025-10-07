@@ -330,19 +330,42 @@ function calculateOverallScore(funny: number, accurate: number, popular: number)
 /**
  * Main scoring function that evaluates a color description
  * @param description The player's description
- * @param hexColor The hex color being described
+ * @param colorData Either a single hex color or dual colors object
  * @returns Complete score breakdown
  */
-export function scoreDescription(description: string, hexColor: string): ScoreResult {
+export function scoreDescription(
+  description: string,
+  colorData: string | { colorA: string; colorB: string }
+): ScoreResult {
   if (!description.trim()) {
     return { funny: 0, accurate: 0, popular: 0, overall: 0 }
   }
-  
+
+  // For dual mode, average the scores for both colors
+  if (typeof colorData !== 'string') {
+    const scoreA = scoreSingleColor(description, colorData.colorA)
+    const scoreB = scoreSingleColor(description, colorData.colorB)
+
+    return {
+      funny: Math.round((scoreA.funny + scoreB.funny) / 2 * 10) / 10,
+      accurate: Math.round((scoreA.accurate + scoreB.accurate) / 2 * 10) / 10,
+      popular: Math.round((scoreA.popular + scoreB.popular) / 2 * 10) / 10,
+      overall: Math.round((scoreA.overall + scoreB.overall) / 2 * 10) / 10
+    }
+  }
+
+  return scoreSingleColor(description, colorData)
+}
+
+/**
+ * Score a single color description
+ */
+function scoreSingleColor(description: string, hexColor: string): ScoreResult {
   const funny = Math.round(calculateFunnyScore(description) * 10) / 10
   const accurate = Math.round(calculateAccuracyScore(description, hexColor) * 10) / 10
   const popular = Math.round(calculatePopularityScore(description) * 10) / 10
   const overall = calculateOverallScore(funny, accurate, popular)
-  
+
   return {
     funny,
     accurate,

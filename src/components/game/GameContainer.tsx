@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { useGameStore } from '@/stores/gameStore'
-import { generateDifferentColor } from '@/utils/colorGenerator'
+import { generateDifferentColor, generateDualColors } from '@/utils/colorGenerator'
 import { scoreDescription } from '@/utils/scoringEngine'
 import { scoreDescriptionWithAI } from '@/lib/aiScoring'
 import { ColorDisplay } from './ColorDisplay'
@@ -12,6 +12,7 @@ import { ScrollableFooter } from './ScrollableFooter'
 import { Tutorial } from './Tutorial'
 import { ScoringSettingsModal } from './ScoringSettingsModal'
 import { StatsModal } from './StatsModal'
+import { ModeToggle } from './ModeToggle'
 
 export function GameContainer() {
   const {
@@ -20,10 +21,13 @@ export function GameContainer() {
     isSubmitting,
     showTutorial,
     hasSeenTutorial,
+    gameMode,
+    dualColors,
     setCurrentColor,
     setPlayerDescription,
     setCurrentScores,
     setIsSubmitting,
+    setDualColors,
     addToHistory,
     completeTutorial,
     setShowTutorial
@@ -45,10 +49,14 @@ export function GameContainer() {
 
     // Only set a new random color if we're using the default color
     if (currentColor === '#8B5CF6') {
-      setCurrentColor(generateDifferentColor('#8B5CF6'))
+      if (gameMode === 'dual') {
+        setDualColors(generateDualColors())
+      } else {
+        setCurrentColor(generateDifferentColor('#8B5CF6'))
+      }
     }
     hasInitializedColor.current = true
-  }, [currentColor, setCurrentColor])
+  }, [currentColor, gameMode, setCurrentColor, setDualColors])
 
   // Show tutorial on first visit only - run once after hydration
   useEffect(() => {
@@ -98,28 +106,31 @@ export function GameContainer() {
       if (shouldUseAI) {
         try {
           setLoadingStatus('🤖 AI is evaluating your creativity...')
-          const apiResponse = await scoreDescriptionWithAI(description, currentColor)
+          const colorData = gameMode === 'dual' && dualColors ? dualColors : currentColor
+          const apiResponse = await scoreDescriptionWithAI(description, colorData)
           scores = apiResponse.scores
-          
+
           // Show feedback about scoring method
           if (apiResponse.source === 'ai') {
             setLoadingStatus('✨ Scored by AI!')
           } else {
             setLoadingStatus('💡 Using smart algorithm')
           }
-          
+
           // Brief delay to show the status
           await new Promise(resolve => setTimeout(resolve, 500))
         } catch (aiError) {
           console.warn('AI scoring failed, using fallback:', aiError)
           setLoadingStatus('💡 Using smart algorithm')
-          scores = scoreDescription(description, currentColor)
+          const colorData = gameMode === 'dual' && dualColors ? dualColors : currentColor
+          scores = scoreDescription(description, colorData)
           await new Promise(resolve => setTimeout(resolve, 300))
         }
       } else {
         setLoadingStatus('💡 Evaluating with smart algorithm...')
         await new Promise(resolve => setTimeout(resolve, 800))
-        scores = scoreDescription(description, currentColor)
+        const colorData = gameMode === 'dual' && dualColors ? dualColors : currentColor
+        scores = scoreDescription(description, colorData)
       }
       
       setCurrentScores(scores)
@@ -128,11 +139,13 @@ export function GameContainer() {
       const historyEntry = {
         id: Date.now().toString(),
         hexColor: currentColor,
+        dualColors: gameMode === 'dual' && dualColors ? dualColors : undefined,
         description,
         scores,
-        timestamp: new Date()
+        timestamp: new Date(),
+        gameMode
       }
-      
+
       addToHistory(historyEntry)
       
       // Show scores
@@ -149,9 +162,11 @@ export function GameContainer() {
       const fallbackEntry = {
         id: Date.now().toString(),
         hexColor: currentColor,
+        dualColors: gameMode === 'dual' && dualColors ? dualColors : undefined,
         description,
         scores: fallbackScores,
-        timestamp: new Date()
+        timestamp: new Date(),
+        gameMode
       }
       
       addToHistory(fallbackEntry)
@@ -161,33 +176,44 @@ export function GameContainer() {
       setIsSubmitting(false)
       setLoadingStatus(null)
     }
-  }, [currentColor, isSubmitting, setIsSubmitting, setPlayerDescription, setCurrentScores, addToHistory])
+  }, [currentColor, gameMode, dualColors, isSubmitting, setIsSubmitting, setPlayerDescription, setCurrentScores, addToHistory])
   
   const handleNewGame = useCallback(() => {
-    // Generate a new color
-    const newColor = generateDifferentColor(currentColor)
-    setCurrentColor(newColor)
-    
+    // Generate new color(s) based on mode
+    if (gameMode === 'dual') {
+      setDualColors(generateDualColors())
+    } else {
+      const newColor = generateDifferentColor(currentColor)
+      setCurrentColor(newColor)
+    }
+
     // Reset game state
     setCurrentScores(null)
     setPlayerDescription('')
     setShowScores(false)
-  }, [currentColor, setCurrentColor, setCurrentScores, setPlayerDescription])
+  }, [currentColor, gameMode, setCurrentColor, setDualColors, setCurrentScores, setPlayerDescription])
   
   const handleRefreshColor = useCallback(() => {
     if (isSubmitting) return // Don't allow refresh during submission
-    
-    // Generate a new color without resetting scores/description
-    const newColor = generateDifferentColor(currentColor)
-    setCurrentColor(newColor)
-  }, [currentColor, setCurrentColor, isSubmitting])
+
+    // Generate new color(s) without resetting scores/description
+    if (gameMode === 'dual') {
+      setDualColors(generateDualColors())
+    } else {
+      const newColor = generateDifferentColor(currentColor)
+      setCurrentColor(newColor)
+    }
+  }, [currentColor, gameMode, setCurrentColor, setDualColors, isSubmitting])
   
   return (
     <div className="relative">
       {/* Main Game Screen */}
       <div className="relative min-h-screen overflow-hidden">
         {/* Background Color Display */}
-        <ColorDisplay hexColor={currentColor} />
+        <ColorDisplay
+          hexColor={gameMode === 'single' ? currentColor : undefined}
+          dualColors={gameMode === 'dual' ? dualColors || undefined : undefined}
+        />
         
         {/* Game Interface Overlay */}
         <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-8">
@@ -214,6 +240,9 @@ export function GameContainer() {
               </div>
             )}
             
+            {/* Mode Toggle */}
+            <ModeToggle />
+
             {/* Input Section */}
             {!showScores && (
               <DescriptionInput
@@ -288,8 +317,10 @@ export function GameContainer() {
       </div>
 
       {/* Scrollable Footer */}
-      <ScrollableFooter 
+      <ScrollableFooter
         currentColor={currentColor}
+        gameMode={gameMode}
+        dualColors={dualColors}
         onTutorialComplete={completeTutorial}
       />
 

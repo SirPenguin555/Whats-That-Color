@@ -10,9 +10,11 @@ import { getContrastingTextColor } from '@/utils/colorUtils'
 
 interface ColorHistorySectionProps {
   currentColor: string
+  gameMode: 'single' | 'dual'
+  dualColors: { colorA: string; colorB: string } | null
 }
 
-export function ColorHistorySection({ currentColor }: ColorHistorySectionProps) {
+export function ColorHistorySection({ currentColor, gameMode, dualColors }: ColorHistorySectionProps) {
   const [history, setHistory] = useState<ColorEntry[]>([])
   const [filteredHistory, setFilteredHistory] = useState<ColorEntry[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -112,13 +114,20 @@ export function ColorHistorySection({ currentColor }: ColorHistorySectionProps) 
     setShowResetConfirm(false)
   }
 
+  // Determine background style based on mode
+  const backgroundStyle = gameMode === 'dual' && dualColors
+    ? {
+        background: `linear-gradient(to right, ${dualColors.colorA} 0%, ${dualColors.colorA} 33.33%, ${dualColors.colorB} 66.67%, ${dualColors.colorB} 100%)`
+      }
+    : { backgroundColor: currentColor }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
       className="min-h-screen w-full"
-      style={{ backgroundColor: currentColor }}
+      style={backgroundStyle}
     >
       {/* 50% width spacer above History */}
       <div className="flex justify-center">
@@ -274,28 +283,41 @@ interface ColorHistoryItemProps {
 }
 
 function ColorHistoryItem({ entry, textColor, isClient }: ColorHistoryItemProps) {
+  const isDualMode = entry.gameMode === 'dual' && entry.dualColors
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`backdrop-blur-sm border-2 border-opacity-20 border-current rounded-xl p-4 
+      className={`backdrop-blur-sm border-2 border-opacity-20 border-current rounded-xl p-4
                  hover:border-opacity-40 transition-all duration-300
                  ${textColor === 'white' ? 'bg-white/10' : 'bg-black/10'}`}
     >
       <div className="flex items-start gap-4">
         {/* Color Swatch */}
-        <div 
-          className="w-16 h-16 rounded-lg border-2 border-white/50 shadow-lg flex-shrink-0"
-          style={{ backgroundColor: entry.hexColor }}
-        />
-        
+        {isDualMode && entry.dualColors ? (
+          <div
+            className="w-16 h-16 rounded-lg border-2 border-white/50 shadow-lg flex-shrink-0"
+            style={{
+              background: `linear-gradient(to right, ${entry.dualColors.colorA} 0%, ${entry.dualColors.colorA} 50%, ${entry.dualColors.colorB} 50%, ${entry.dualColors.colorB} 100%)`
+            }}
+          />
+        ) : (
+          <div
+            className="w-16 h-16 rounded-lg border-2 border-white/50 shadow-lg flex-shrink-0"
+            style={{ backgroundColor: entry.hexColor }}
+          />
+        )}
+
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-2">
             <div>
               <h3 className={`font-medium mb-1
                             ${textColor === 'white' ? 'text-white' : 'text-black'}`}>
-                {entry.hexColor.toUpperCase()}
+                {isDualMode && entry.dualColors
+                  ? `${entry.dualColors.colorA.toUpperCase()} ↔ ${entry.dualColors.colorB.toUpperCase()}`
+                  : entry.hexColor.toUpperCase()}
               </h3>
               <p className={`text-sm italic
                            ${textColor === 'white' ? 'text-white/80' : 'text-black/80'}`}>

@@ -19,7 +19,8 @@ function getOpenAIClient(): OpenAI {
 
 interface ScoreRequest {
   description: string
-  hexColor: string
+  hexColor?: string
+  dualColors?: { colorA: string; colorB: string }
   apiKey?: string
 }
 
@@ -63,21 +64,61 @@ Rate each criterion from 0.0 to 5.0 (decimal precision):
 Return ONLY this JSON format:
 {"funny": X.X, "accurate": X.X, "popular": X.X}`
 
+const DUAL_SCORING_PROMPT = `You are an expert judge for a creative color description game. Rate the following description of a GRADIENT between two colors on three criteria:
+
+COLOR A: {colorA}
+COLOR B: {colorB}
+GRADIENT: {colorA} → {colorB}
+DESCRIPTION: "{description}"
+
+Rate each criterion from 0.0 to 5.0 (decimal precision):
+
+1. FUNNY: How humorous, creative, or entertaining is this description?
+   - Consider wordplay, metaphors, cultural references, unexpected comparisons
+   - 0.0 = No humor, 5.0 = Genuinely hilarious
+
+2. ACCURATE: How well does this description capture BOTH colors and the transition?
+   - Must describe both Color A and Color B well to score high
+   - Consider if the transition/gradient is mentioned
+   - 0.0 = Completely wrong, 5.0 = Both colors perfectly described
+
+3. POPULAR: Does this strike the right balance between unique and understandable?
+   - 2.5 = Perfect balance (creative but accessible)
+   - 0.0 = Too obscure/confusing, 5.0 = Too common/boring
+
+Return ONLY this JSON format:
+{"funny": X.X, "accurate": X.X, "popular": X.X}`
+
 function calculateOverallScore(funny: number, accurate: number, popular: number): number {
   // Weighted average: Accuracy 40%, Funny 30%, Popular 30%
   const weighted = (accurate * 0.4) + (funny * 0.3) + (popular * 0.3)
   return Math.round(weighted * 10) / 10 // Round to 1 decimal place
 }
 
-async function scoreWithAI(description: string, hexColor: string, apiKey?: string): Promise<AIScoreResponse> {
+async function scoreWithAI(
+  description: string,
+  colorData: string | { colorA: string; colorB: string },
+  apiKey?: string
+): Promise<AIScoreResponse> {
   // Use provided API key or fall back to environment key
-  const openai = apiKey 
-    ? new OpenAI({ apiKey }) 
+  const openai = apiKey
+    ? new OpenAI({ apiKey })
     : getOpenAIClient()
-    
-  const prompt = SCORING_PROMPT
-    .replace('{hexColor}', hexColor)
-    .replace('{description}', description)
+
+  let prompt: string
+
+  if (typeof colorData === 'string') {
+    // Single color mode
+    prompt = SCORING_PROMPT
+      .replace('{hexColor}', colorData)
+      .replace('{description}', description)
+  } else {
+    // Dual color mode
+    prompt = DUAL_SCORING_PROMPT
+      .replace(/{colorA}/g, colorData.colorA)
+      .replace(/{colorB}/g, colorData.colorB)
+      .replace('{description}', description)
+  }
 
   const completion = await openai.chat.completions.create({
     model: 'gpt-4',
@@ -124,15 +165,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScoreResp
   try {
     // Parse request body
     const body = await request.json() as ScoreRequest
-    const { description, hexColor, apiKey } = body
+    const { description, hexColor, dualColors, apiKey } = body
 
     // Validate input
-    if (!description || !hexColor) {
+    if (!description || (!hexColor && !dualColors)) {
       return NextResponse.json(
-        { error: 'Missing description or hexColor' },
+        { error: 'Missing description or color information' },
         { status: 400 }
       )
     }
+
+    const colorData = dualColors || hexColor!
 
     // Determine if we should use AI scoring
     const shouldUseAI = apiKey || (process.env.NEXT_PUBLIC_AI_SCORING_ENABLED === 'true' && process.env.OPENAI_API_KEY)
@@ -142,11 +185,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScoreResp
 
     if (shouldUseAI) {
       try {
-        scores = await scoreWithAI(description, hexColor, apiKey)
+        scores = await scoreWithAI(description, colorData, apiKey)
         source = 'ai'
       } catch (aiError) {
         console.warn('AI scoring failed, using fallback:', aiError)
-        const fallbackResult = fallbackScoring(description, hexColor)
+        const fallbackResult = fallbackScoring(description, colorData)
         scores = {
           funny: fallbackResult.funny,
           accurate: fallbackResult.accurate,
@@ -155,7 +198,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScoreResp
       }
     } else {
       // Use fallback scoring
-      const fallbackResult = fallbackScoring(description, hexColor)
+      const fallbackResult = fallbackScoring(description, colorData)
       scores = {
         funny: fallbackResult.funny,
         accurate: fallbackResult.accurate,
@@ -184,7 +227,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScoreResp
     // Fallback to basic scoring on any error
     try {
       const body = await request.json() as ScoreRequest
-      const fallbackResult = fallbackScoring(body.description, body.hexColor)
+      const colorData = body.dualColors || body.hexColor!
+      const fallbackResult = fallbackScoring(body.description, colorData)
       const processingTime = Date.now() - startTime
 
       return NextResponse.json({
