@@ -34,11 +34,23 @@ export function GameContainer() {
   const [showFirstTimeSettings, setShowFirstTimeSettings] = useState(false)
   const hasCheckedTutorial = useRef(false)
   const hasCheckedSettings = useRef(false)
-  
+  const hasInitializedColor = useRef(false)
+
+  // Initialize with a random color on client side (after hydration)
+  useEffect(() => {
+    if (hasInitializedColor.current) return
+
+    // Only set a new random color if we're using the default color
+    if (currentColor === '#8B5CF6') {
+      setCurrentColor(generateDifferentColor('#8B5CF6'))
+    }
+    hasInitializedColor.current = true
+  }, [currentColor, setCurrentColor])
+
   // Show tutorial on first visit only - run once after hydration
   useEffect(() => {
     if (hasCheckedTutorial.current) return
-    
+
     // Small delay to ensure Zustand has hydrated from localStorage
     const timer = setTimeout(() => {
       if (!hasSeenTutorial && !showTutorial) {
@@ -46,7 +58,7 @@ export function GameContainer() {
       }
       hasCheckedTutorial.current = true
     }, 100)
-    
+
     return () => clearTimeout(timer)
   }, [hasSeenTutorial, showTutorial, setShowTutorial])
 

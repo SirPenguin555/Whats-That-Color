@@ -46,8 +46,8 @@ interface GameState {
 export const useGameStore = create<GameState>()(
   persist(
     (set) => ({
-      // Initial state
-      currentColor: generateRandomColor(),
+      // Initial state - use a consistent default color to avoid hydration issues
+      currentColor: '#8B5CF6', // Default purple color
       playerDescription: '',
       currentScores: null,
       isSubmitting: false,
