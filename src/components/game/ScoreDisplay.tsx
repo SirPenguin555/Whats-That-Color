@@ -152,10 +152,10 @@ export function ScoreDisplay({
              'YOUR SCORE!'}
           </h2>
           
-          <div className="mb-4">
-            <StarRating 
-              rating={scores.overall} 
-              size={40} 
+          <div className="mb-4 flex justify-center">
+            <StarRating
+              rating={scores.overall}
+              size={40}
               animated={true}
               showValue={false}
             />
