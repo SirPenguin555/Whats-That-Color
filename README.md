@@ -1,3 +1,5 @@
+The following document was made by Claude AI. Please, double-check information.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
