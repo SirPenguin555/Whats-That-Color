@@ -93,26 +93,6 @@ export function StatsModal({ isOpen, onClose }: StatsModalProps) {
                     <div className="text-sm text-green-700 font-medium">Best Score</div>
                   </div>
                 </div>
-
-                {/* Favorite Colors */}
-                {stats.favoriteColors.length > 0 && (
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border-2 border-purple-200">
-                    <h3 className="text-lg font-gameshow font-bold text-purple-800 mb-4">🌈 Your Favorite Colors</h3>
-                    <div className="flex flex-wrap gap-3">
-                      {stats.favoriteColors.map((color, index) => (
-                        <div key={`${color}-${index}`} className="flex items-center gap-2">
-                          <div 
-                            className="w-8 h-8 rounded-full border-2 border-white shadow-md"
-                            style={{ backgroundColor: color }}
-                          />
-                          <span className="text-sm font-medium text-purple-700">
-                            {color.toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>

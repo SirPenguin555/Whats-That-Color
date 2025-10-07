@@ -11,6 +11,7 @@ import { ScoreDisplay } from './ScoreDisplay'
 import { ScrollableFooter } from './ScrollableFooter'
 import { Tutorial } from './Tutorial'
 import { ScoringSettingsModal } from './ScoringSettingsModal'
+import { StatsModal } from './StatsModal'
 
 export function GameContainer() {
   const {
@@ -32,6 +33,8 @@ export function GameContainer() {
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [showFirstTimeSettings, setShowFirstTimeSettings] = useState(false)
+  const [showStatsModal, setShowStatsModal] = useState(false)
+  const [showTutorialModal, setShowTutorialModal] = useState(false)
   const hasCheckedTutorial = useRef(false)
   const hasCheckedSettings = useRef(false)
   const hasInitializedColor = useRef(false)
@@ -225,10 +228,10 @@ export function GameContainer() {
         </div>
         
         {/* Top Controls */}
-        <div className="absolute top-4 left-4 md:top-8 md:left-8 z-50">
+        <div className="absolute top-4 left-4 md:top-8 md:left-8 z-50 flex gap-2">
           <button
             onClick={() => setShowSettings(true)}
-            className="bg-white/90 backdrop-blur-sm hover:bg-white/95 
+            className="bg-white/90 backdrop-blur-sm hover:bg-white/95
                        transition-all duration-200 ease-out
                        rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
                        font-gameshow text-gray-800 text-sm"
@@ -236,13 +239,43 @@ export function GameContainer() {
           >
             Settings
           </button>
+          <button
+            onClick={() => setShowStatsModal(true)}
+            className="bg-white/90 backdrop-blur-sm hover:bg-white/95
+                       transition-all duration-200 ease-out
+                       rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
+                       font-gameshow text-gray-800 text-sm"
+            title="View Statistics"
+          >
+            Stats
+          </button>
+          <button
+            onClick={() => setShowTutorialModal(true)}
+            className="bg-white/90 backdrop-blur-sm hover:bg-white/95
+                       transition-all duration-200 ease-out
+                       rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
+                       font-gameshow text-gray-800 text-sm"
+            title="Show Tutorial"
+          >
+            Tutorial
+          </button>
         </div>
-        
-        <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50">
+
+        <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50 flex gap-2">
+          <button
+            onClick={() => window.open('https://github.com/SirPenguin555/Whats-That-Color', '_blank')}
+            className="bg-white/90 backdrop-blur-sm hover:bg-white/95
+                       transition-all duration-200 ease-out
+                       rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
+                       font-gameshow text-gray-800 text-sm"
+            title="View on GitHub"
+          >
+            GitHub
+          </button>
           <button
             onClick={handleRefreshColor}
             disabled={isSubmitting}
-            className="bg-white/90 backdrop-blur-sm hover:bg-white/95 
+            className="bg-white/90 backdrop-blur-sm hover:bg-white/95
                        disabled:opacity-50 disabled:cursor-not-allowed
                        transition-all duration-200 ease-out
                        rounded-lg px-4 py-2 shadow-lg hover:shadow-xl
@@ -264,6 +297,17 @@ export function GameContainer() {
       {showTutorial && (
         <Tutorial onComplete={completeTutorial} />
       )}
+
+      {/* Tutorial Modal - manual trigger */}
+      {showTutorialModal && (
+        <Tutorial onComplete={() => setShowTutorialModal(false)} />
+      )}
+
+      {/* Stats Modal */}
+      <StatsModal
+        isOpen={showStatsModal}
+        onClose={() => setShowStatsModal(false)}
+      />
 
       {/* Settings Modal */}
       <ScoringSettingsModal

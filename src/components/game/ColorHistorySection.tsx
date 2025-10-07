@@ -2,25 +2,22 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { MagnifyingGlass, Download, GraduationCap, ChartBar, Trash } from '@phosphor-icons/react'
+import { MagnifyingGlass, Download, Trash } from '@phosphor-icons/react'
 import { ColorEntry, useGameStore } from '@/stores/gameStore'
 import { getColorHistory, searchColorHistory } from '@/lib/colorHistory'
 import { StarRating } from './ScoreDisplay'
-import { StatsModal } from './StatsModal'
 import { getContrastingTextColor } from '@/utils/colorUtils'
 
 interface ColorHistorySectionProps {
   currentColor: string
-  onShowTutorial: () => void
 }
 
-export function ColorHistorySection({ currentColor, onShowTutorial }: ColorHistorySectionProps) {
+export function ColorHistorySection({ currentColor }: ColorHistorySectionProps) {
   const [history, setHistory] = useState<ColorEntry[]>([])
   const [filteredHistory, setFilteredHistory] = useState<ColorEntry[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [minScore, setMinScore] = useState<number | undefined>()
   const [loading, setLoading] = useState(true)
-  const [showStats, setShowStats] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [isClient, setIsClient] = useState(false)
 
@@ -182,26 +179,6 @@ export function ColorHistorySection({ currentColor, onShowTutorial }: ColorHisto
             </button>
 
             <button
-              onClick={onShowTutorial}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg backdrop-blur-sm border-2 border-opacity-30 border-current
-                         hover:border-opacity-60 hover:bg-white/10 transition-all
-                         ${textColor === 'white' ? 'text-white' : 'text-black'}`}
-            >
-              <GraduationCap size={16} />
-              Tutorial
-            </button>
-
-            <button
-              onClick={() => setShowStats(true)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg backdrop-blur-sm border-2 border-opacity-30 border-current
-                         hover:border-opacity-60 hover:bg-white/10 transition-all
-                         ${textColor === 'white' ? 'text-white' : 'text-black'}`}
-            >
-              <ChartBar size={16} />
-              Stats
-            </button>
-
-            <button
               onClick={() => setShowResetConfirm(true)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg backdrop-blur-sm border-2 border-opacity-30 border-current
                          hover:border-opacity-60 hover:bg-white/10 transition-all
@@ -254,12 +231,6 @@ export function ColorHistorySection({ currentColor, onShowTutorial }: ColorHisto
           )}
         </div>
       </div>
-
-      {/* Stats Modal */}
-      <StatsModal 
-        isOpen={showStats} 
-        onClose={() => setShowStats(false)} 
-      />
 
       {/* Reset Confirmation Dialog */}
       {showResetConfirm && (
